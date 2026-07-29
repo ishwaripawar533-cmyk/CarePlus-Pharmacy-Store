@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>CarePlus Pharmacy & Admin Portal</title>
+</head>
+<body class="bg-slate-100 min-h-screen p-4 sm:p-6">
+
+  <div class="max-w-6xl mx-auto">
+    <!-- Header Navigation & View Switcher -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">CarePlus Healthcare</h1>
+        <p class="text-xs text-slate-500">Integrated Pharmacy Store & Order Management System</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- View Toggle Buttons -->
+        <div class="bg-slate-100 p-1 rounded-xl flex">
+          <button id="storeViewBtn" onclick="switchView('store')" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-teal-700 shadow-sm transition">
+            🛒 Customer Store
+          </button>
+          <button id="adminViewBtn" onclick="switchView('admin')" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+            ⚙️ Admin Panel
+          </button>
+        </div>
+
+        <!-- Auth Status Container -->
+        <div id="userState" class="flex items-center gap-2">
+          <button onclick="toggleAuthModal(true)" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition">
+            Login / Sign Up
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: CUSTOMER PHARMACY STORE           -->
+    <!-- ========================================== -->
+    <div id="storeSection">
+      <!-- Category Filters & Live Counter -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div class="flex flex-wrap gap-2">
+          <button onclick="filterCategory('all')" class="cat-btn bg-teal-600 text-white px-4 py-2 rounded-xl text-xs font-semibold transition">All Products</button>
+          <button onclick="filterCategory('Pain Relief')" class="cat-btn bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-xl text-xs font-semibold transition">Pain Relief</button>
+          <button onclick="filterCategory('Vitamins')" class="cat-btn bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-xl text-xs font-semibold transition">Vitamins</button>
+          <button onclick="filterCategory('First Aid')" class="cat-btn bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-xl text-xs font-semibold transition">First Aid</button>
+        </div>
+
+        <div class="flex items-center gap-2 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-teal-500"></span>
+          </span>
+          <span class="text-xs font-semibold text-teal-800">
+            Active Orders: <span id="storeOrderCount" class="font-bold text-teal-600">0</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Product Catalog Grid -->
+      <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: ADMIN ORDERS DASHBOARD             -->
+    <!-- ========================================== -->
+    <div id="adminSection" class="hidden">
+      <!-- Analytics Stats Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <span class="text-xs text-slate-400 font-semibold block uppercase">Total Pending Orders</span>
+          <span id="adminTotalOrders" class="text-2xl font-bold text-slate-800">0</span>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <span class="text-xs text-slate-400 font-semibold block uppercase">Total Revenue</span>
+          <span id="adminTotalRevenue" class="text-2xl font-bold text-teal-600">$0.00</span>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <span class="text-xs text-slate-400 font-semibold block uppercase">Firebase Connection</span>
+          <span class="text-2xl font-bold text-emerald-600 flex items-center gap-2">
+            <span class="h-3 w-3 bg-emerald-500 rounded-full animate-pulse"></span> Active
+          </span>
+        </div>
+      </div>
+
+      <!-- Live Orders Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+          <h2 class="font-bold text-slate-800">Incoming Customer Orders</h2>
+          <button onclick="clearAllOrders()" class="text-xs text-red-600 font-semibold hover:underline">Clear History</button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-500 uppercase text-xs">
+              <tr>
+                <th class="px-6 py-3">Order ID</th>
+                <th class="px-6 py-3">Item Name</th>
+                <th class="px-6 py-3">Price</th>
+                <th class="px-6 py-3">Customer Email</th>
+                <th class="px-6 py-3">Timestamp</th>
+                <th class="px-6 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="adminOrderTable" class="divide-y divide-slate-100">
+              <!-- Orders injected dynamically here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Authentication Modal Popup -->
+  <div id="authModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-200 relative">
+      <button onclick="toggleAuthModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+      <h2 id="modalTitle" class="text-xl font-bold text-slate-800 mb-1">Welcome Back</h2>
+      <p class="text-xs text-slate-500 mb-6">Sign in to place and track medical orders.</p>
+
+      <form id="authForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Email Address</label>
+          <input type="email" id="authEmail" required placeholder="user@example.com" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+          <input type="password" id="authPassword" required placeholder="••••••••" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+        </div>
+        <button type="submit" id="authSubmitBtn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl transition text-sm">
+          Sign In
+        </button>
+      </form>
+
+      <div class="mt-4 text-center">
+        <button id="toggleAuthModeBtn" onclick="toggleAuthMode()" class="text-xs text-teal-600 font-medium hover:underline">
+          Don't have an account? Sign up
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Integration & Web Application Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js"; 
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+    // Standard Restricted Config Block (Replace with your actual keys in production)
+   const firebaseConfig = {
+  apiKey: "AIzaSyAXr1YD_R6I5mSZWL8mDkIwdvTx7NSj2aE",
+  authDomain: "studentdata-f4449.firebaseapp.com",
+  databaseURL: "https://studentdata-f4449-default-rtdb.firebaseio.com",
+  projectId: "studentdata-f4449",
+  storageBucket: "studentdata-f4449.firebasestorage.app",
+  messagingSenderId: "455984666862",
+  appId: "1:455984666862:web:bac289cd3f55e8ffe47bff",
+  measurementId: "G-669NZVRLS4"
+};const app = initializeApp(firebaseConfig); 
+const database = getDatabase(app);
+const auth = getAuth(app);
+
+    let isSignUpMode = false;
+    let currentUser = null;
+
+    // View Navigation Switcher
+    window.switchView = function(viewName) {
+      const storeSection = document.getElementById('storeSection');
+      const adminSection = document.getElementById('adminSection');
+      const storeBtn = document.getElementById('storeViewBtn');
+      const adminBtn = document.getElementById('adminViewBtn');
+
+      if (viewName === 'store') {
+        storeSection.classList.remove('hidden');
+        adminSection.classList.add('hidden');
+        storeBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-teal-700 shadow-sm transition";
+        adminBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition";
+      } else {
+        adminSection.classList.remove('hidden');
+        storeSection.classList.add('hidden');
+        adminBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-teal-700 shadow-sm transition";
+        storeBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition";
+      }
+    };
+
+    // Monitor Auth State
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      const userStateContainer = document.getElementById('userState');
+      if (user) {
+        userStateContainer.innerHTML = `
+          <span class="text-xs font-medium text-slate-600 max-w-[120px] truncate" title="${user.email}">${user.email}</span>
+          <button onclick="handleLogout()" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold px-3 py-2 rounded-xl transition">Logout</button>
+        `;
+      } else {
+        userStateContainer.innerHTML = `
+          <button onclick="toggleAuthModal(true)" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition">Login / Register</button>
+        `;
+      }
+    });
+
+    // Handle Auth Submission
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+
+      try {
+        if (isSignUpMode) {
+          await createUserWithEmailAndPassword(auth, email, password);
+          alert("Account created successfully!");
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+          alert("Logged in successfully!");
+        }
+        toggleAuthModal(false);
+      } catch (err) {
+        alert("Auth Error: " + err.message);
+      }
+    });
+
+    window.toggleAuthMode = function() {
+      isSignUpMode = !isSignUpMode;
+      document.getElementById('modalTitle').innerText = isSignUpMode ? "Create Account" : "Welcome Back";
+      document.getElementById('authSubmitBtn').innerText = isSignUpMode ? "Sign Up" : "Sign In";
+      document.getElementById('toggleAuthModeBtn').innerText = isSignUpMode ? "Already have an account? Sign in" : "Don't have an account? Sign up";
+    };
+
+    window.toggleAuthModal = function(show) {
+      document.getElementById('authModal').classList.toggle('hidden', !show);
+    };
+
+    window.handleLogout = function() {
+      signOut(auth);
+    };
+
+    // Product Inventory
+    const medicineDatabase = [
+      { id: 1, name: "Ibuprofen 200mg Softgels", brand: "Advil Health", category: "Pain Relief", price: "8.99", image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=500&q=80", badge: "OTC Medicine" },
+      { id: 2, name: "Paracetamol 500mg Tablets", brand: "Tylenol Care", category: "Pain Relief", price: "6.49", image: "https://images.unsplash.com/photo-1550572017-edf7b63f6402?auto=format&fit=crop&w=500&q=80", badge: "Fever Relief" },
+      { id: 3, name: "Vitamin C 1000mg + Zinc", brand: "Emergen-C", category: "Vitamins", price: "14.20", image: "https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&w=500&q=80", badge: "Immune Boost" },
+      { id: 4, name: "Sterile Fabric Bandages (100 Pack)", brand: "Band-Aid", category: "First Aid", price: "7.25", image: "https://images.unsplash.com/photo-1603398938378-e54eab446dde?auto=format&fit=crop&w=500&q=80", badge: "First Aid" }
+    ];
+
+    window.renderProducts = function(items) {
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = '';
+      items.forEach(product => {
+        grid.innerHTML += `
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between">
+            <div>
+              <div class="h-48 bg-slate-50 flex items-center justify-center overflow-hidden relative">
+                <img src="${product.image}" alt="${product.name}" class="object-cover h-full w-full"/>
+                <span class="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full font-semibold bg-teal-100 text-teal-800">${product.badge}</span>
+              </div>
+              <div class="p-5">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">${product.brand}</span>
+                <h3 class="font-bold text-slate-800 text-lg leading-snug mt-1">${product.name}</h3>
+              </div>
+            </div>
+            <div class="p-5 pt-0 flex justify-between items-center border-t border-slate-100 mt-4">
+              <div>
+                <span class="text-xs text-slate-400 block">Price</span>
+                <span class="text-xl font-bold text-teal-600">$${product.price}</span>
+              </div>
+              <button onclick="placeOrder('${product.name}', '${product.price}')" class="bg-slate-900 hover:bg-teal-600 text-white text-sm font-medium px-4 py-2 rounded-xl transition">
+                Order Now
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    };
+
+    window.filterCategory = function(category) {
+      renderProducts(category === 'all' ? medicineDatabase : medicineDatabase.filter(item => item.category === category));
+    };
+
+    window.placeOrder = function(itemName, price) {
+      const ordersRef = ref(database, 'orders');
+      push(ordersRef, {
+        item: itemName,
+        price: price,
+        customerEmail: currentUser ? currentUser.email : "Guest Order",
+        timestamp: new Date().toLocaleString()
+      }).then(() => alert(`Order placed for ${itemName}!`))
+        .catch((err) => console.error("Database Write Error:", err));
+    };
+
+    // Firebase Realtime Synchronization (Updates Store Counter + Admin Panel synchronously)
+    onValue(ref(database, 'orders'), (snapshot) => {
+      const data = snapshot.val();
+      const tableBody = document.getElementById('adminOrderTable');
+      tableBody.innerHTML = '';
+
+      if (!data) {
+        document.getElementById('storeOrderCount').innerText = '0';
+        document.getElementById('adminTotalOrders').innerText = '0';
+        document.getElementById('adminTotalRevenue').innerText = '$0.00';
+        tableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-slate-400">No active customer orders found in Firebase.</td></tr>`;
+        return;
+      }
+
+      let revenueSum = 0;
+      const orderKeys = Object.keys(data);
+
+      orderKeys.forEach(key => {
+        const order = data[key];
+        revenueSum += parseFloat(order.price || 0);
+
+        tableBody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="px-6 py-4 font-mono text-xs text-slate-400">${key.substring(0, 8)}...</td>
+            <td class="px-6 py-4 font-bold text-slate-800">${order.item}</td>
+            <td class="px-6 py-4 text-teal-600 font-semibold">$${order.price}</td>
+            <td class="px-6 py-4 text-slate-600">${order.customerEmail}</td>
+            <td class="px-6 py-4 text-xs text-slate-400">${order.timestamp}</td>
+            <td class="px-6 py-4 text-right">
+              <button onclick="fulfillOrder('${key}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs px-3 py-1.5 rounded-lg font-medium transition">
+                Fulfill
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('storeOrderCount').innerText = orderKeys.length;
+      document.getElementById('adminTotalOrders').innerText = orderKeys.length;
+      document.getElementById('adminTotalRevenue').innerText = `$${revenueSum.toFixed(2)}`;
+    });
+
+    window.fulfillOrder = function(orderId) {
+      remove(ref(database, `orders/${orderId}`));
+    };
+
+    window.clearAllOrders = function() {
+      if (confirm("Are you sure you want to delete all active orders?")) {
+        remove(ref(database, 'orders'));
+      }
+    };
+
+    // Initial Catalog Load
+    renderProducts(medicineDatabase);
+  </script>
+</body>
+</html>
