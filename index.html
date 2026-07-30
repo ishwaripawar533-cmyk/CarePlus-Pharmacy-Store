@@ -1,353 +1,535 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Care Plus Pharmacy | Firebase Powered Store</title>
+
+  <!-- Tailwind CSS & Font Awesome -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <title>CarePlus Pharmacy & Admin Portal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+  <style>
+    .hero {
+      background:
+        linear-gradient(rgba(7, 94, 84, 0.82), rgba(7, 94, 84, 0.75)),
+        url('https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=1600&q=80');
+      background-size: cover;
+      background-position: center;
+    }
+  </style>
 </head>
-<body class="bg-slate-100 min-h-screen p-4 sm:p-6">
 
-  <div class="max-w-6xl mx-auto">
-    <!-- Header Navigation & View Switcher -->
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-      <div>
-        <h1 class="text-2xl font-bold text-slate-800">CarePlus Healthcare</h1>
-        <p class="text-xs text-slate-500">Integrated Pharmacy Store & Order Management System</p>
-      </div>
+<body class="bg-sky-50 min-h-screen text-gray-800 flex flex-col justify-between">
 
+  <!-- HEADER -->
+  <header class="sticky top-0 z-40 bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+
+      <!-- Logo -->
       <div class="flex items-center gap-3">
-        <!-- View Toggle Buttons -->
-        <div class="bg-slate-100 p-1 rounded-xl flex">
-          <button id="storeViewBtn" onclick="switchView('store')" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-teal-700 shadow-sm transition">
-            🛒 Customer Store
-          </button>
-          <button id="adminViewBtn" onclick="switchView('admin')" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
-            ⚙️ Admin Panel
-          </button>
-        </div>
-
-        <!-- Auth Status Container -->
-        <div id="userState" class="flex items-center gap-2">
-          <button onclick="toggleAuthModal(true)" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition">
-            Login / Sign Up
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- VIEW 1: CUSTOMER PHARMACY STORE           -->
-    <!-- ========================================== -->
-    <div id="storeSection">
-      <!-- Category Filters & Live Counter -->
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div class="flex flex-wrap gap-2">
-          <button onclick="filterCategory('all')" class="cat-btn bg-teal-600 text-white px-4 py-2 rounded-xl text-xs font-semibold transition">All Products</button>
-          <button onclick="filterCategory('Pain Relief')" class="cat-btn bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-xl text-xs font-semibold transition">Pain Relief</button>
-          <button onclick="filterCategory('Vitamins')" class="cat-btn bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-xl text-xs font-semibold transition">Vitamins</button>
-          <button onclick="filterCategory('First Aid')" class="cat-btn bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-xl text-xs font-semibold transition">First Aid</button>
-        </div>
-
-        <div class="flex items-center gap-2 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl">
-          <span class="relative flex h-2.5 w-2.5">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-teal-500"></span>
-          </span>
-          <span class="text-xs font-semibold text-teal-800">
-            Active Orders: <span id="storeOrderCount" class="font-bold text-teal-600">0</span>
-          </span>
-        </div>
-      </div>
-
-      <!-- Product Catalog Grid -->
-      <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- VIEW 2: ADMIN ORDERS DASHBOARD             -->
-    <!-- ========================================== -->
-    <div id="adminSection" class="hidden">
-      <!-- Analytics Stats Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <span class="text-xs text-slate-400 font-semibold block uppercase">Total Pending Orders</span>
-          <span id="adminTotalOrders" class="text-2xl font-bold text-slate-800">0</span>
-        </div>
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <span class="text-xs text-slate-400 font-semibold block uppercase">Total Revenue</span>
-          <span id="adminTotalRevenue" class="text-2xl font-bold text-teal-600">$0.00</span>
-        </div>
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <span class="text-xs text-slate-400 font-semibold block uppercase">Firebase Connection</span>
-          <span class="text-2xl font-bold text-emerald-600 flex items-center gap-2">
-            <span class="h-3 w-3 bg-emerald-500 rounded-full animate-pulse"></span> Active
-          </span>
-        </div>
-      </div>
-
-      <!-- Live Orders Table -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-5 border-b border-slate-100 flex justify-between items-center">
-          <h2 class="font-bold text-slate-800">Incoming Customer Orders</h2>
-          <button onclick="clearAllOrders()" class="text-xs text-red-600 font-semibold hover:underline">Clear History</button>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-slate-50 text-slate-500 uppercase text-xs">
-              <tr>
-                <th class="px-6 py-3">Order ID</th>
-                <th class="px-6 py-3">Item Name</th>
-                <th class="px-6 py-3">Price</th>
-                <th class="px-6 py-3">Customer Email</th>
-                <th class="px-6 py-3">Timestamp</th>
-                <th class="px-6 py-3 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody id="adminOrderTable" class="divide-y divide-slate-100">
-              <!-- Orders injected dynamically here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Authentication Modal Popup -->
-  <div id="authModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
-    <div class="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-200 relative">
-      <button onclick="toggleAuthModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-      <h2 id="modalTitle" class="text-xl font-bold text-slate-800 mb-1">Welcome Back</h2>
-      <p class="text-xs text-slate-500 mb-6">Sign in to place and track medical orders.</p>
-
-      <form id="authForm" class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Email Address</label>
-          <input type="email" id="authEmail" required placeholder="user@example.com" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+        <div class="w-12 h-12 rounded-full bg-green-600 text-white flex items-center justify-center text-2xl shadow">
+          <i class="fa-solid fa-notes-medical"></i>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
-          <input type="password" id="authPassword" required placeholder="••••••••" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
+          <h1 class="text-xl md:text-2xl font-bold text-green-700">Care Plus Pharmacy</h1>
+          <p class="text-xs text-gray-500">Tech Store by Ishwari</p>
         </div>
-        <button type="submit" id="authSubmitBtn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl transition text-sm">
-          Sign In
+      </div>
+
+      <!-- Search -->
+      <div class="flex-1 max-w-md w-full order-3 md:order-2">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search paracetamol, vitamins, BP monitors..."
+            class="w-full pl-11 pr-4 py-2.5 rounded-full border border-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50 text-sm">
+        </div>
+      </div>
+
+      <!-- Action Buttons (History & Cart) -->
+      <div class="flex items-center gap-3 order-2 md:order-3">
+        <!-- Order History Button -->
+        <button id="historyBtn" class="flex items-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2.5 rounded-full font-semibold text-sm transition border border-green-200">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span class="hidden sm:inline">My Orders</span>
+          <span id="historyBadge" class="bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+        </button>
+
+        <!-- Cart Button -->
+        <div id="cartBtn" class="relative cursor-pointer">
+          <div class="w-11 h-11 rounded-full bg-green-600 text-white flex items-center justify-center text-lg hover:bg-green-700 transition shadow">
+            <i class="fa-solid fa-cart-shopping"></i>
+          </div>
+          <span id="cartBadge" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+            0
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="hero text-white">
+    <div class="max-w-7xl mx-auto px-6 py-20 text-center">
+      <span class="bg-white/20 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider inline-block backdrop-blur-sm">
+        💚 Trusted Healthcare • Cloud Database Connected
+      </span>
+      <h2 class="text-3xl md:text-5xl font-extrabold leading-tight mt-4">
+        Genuine Medicines & Healthcare <br>
+        <span class="text-green-300">Delivered To Your Doorstep</span>
+      </h2>
+      <p class="text-sm md:text-lg mt-4 text-blue-100 max-w-2xl mx-auto">
+        Fast Delivery • 100% Genuine Products • Live Firebase Database Sync
+      </p>
+    </div>
+  </section>
+
+  <!-- MAIN CATALOG & FILTERS -->
+  <main class="max-w-7xl mx-auto px-4 md:px-6 py-12 flex-1">
+
+    <!-- Category Filters -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+      <div>
+        <h2 class="text-2xl font-bold text-green-800">Explore Medicines & Products</h2>
+        <p class="text-xs text-gray-500">Filter through our wide range of pharmaceutical products</p>
+      </div>
+
+      <div class="flex flex-wrap gap-2" id="categoryContainer">
+        <button onclick="filterCategory('All')" class="category-btn active-cat bg-green-700 text-white px-4 py-2 rounded-full text-xs font-semibold transition">All</button>
+        <button onclick="filterCategory('Prescription')" class="category-btn bg-white hover:bg-green-100 text-gray-700 px-4 py-2 rounded-full text-xs font-semibold transition border">Prescription</button>
+        <button onclick="filterCategory('Daily Wellness')" class="category-btn bg-white hover:bg-green-100 text-gray-700 px-4 py-2 rounded-full text-xs font-semibold transition border">Daily Wellness</button>
+        <button onclick="filterCategory('Medical Devices')" class="category-btn bg-white hover:bg-green-100 text-gray-700 px-4 py-2 rounded-full text-xs font-semibold transition border">Medical Devices</button>
+        <button onclick="filterCategory('First Aid')" class="category-btn bg-white hover:bg-green-100 text-gray-700 px-4 py-2 rounded-full text-xs font-semibold transition border">First Aid</button>
+      </div>
+    </div>
+
+    <!-- Dynamic Product Grid -->
+    <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-green-900 text-green-100 py-8 text-center text-xs">
+    <p>© Care Plus Pharmacy • Powered by Firebase Realtime DB</p>
+  </footer>
+
+  <!-- DRAWER OVERLAY -->
+  <div id="overlay" class="hidden fixed inset-0 bg-black/50 z-50 transition-opacity"></div>
+
+  <!-- CART SLIDE-OUT DRAWER -->
+  <aside id="cartDrawer" class="fixed top-0 right-0 w-full sm:w-96 h-full bg-white shadow-2xl z-50 translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="p-5 bg-green-700 text-white flex justify-between items-center shadow">
+      <h2 class="text-lg font-bold flex items-center gap-2">
+        <i class="fa-solid fa-cart-shopping"></i> Shopping Cart
+      </h2>
+      <button onclick="closeDrawers()" class="text-2xl hover:text-gray-200 font-bold">&times;</button>
+    </div>
+
+    <div id="cartItems" class="p-4 flex-1 overflow-y-auto divide-y divide-gray-100"></div>
+
+    <div class="p-5 border-t border-gray-200 bg-gray-50">
+      <!-- Promo Input -->
+      <div class="flex gap-2 mb-3">
+        <input type="text" id="promoInput" placeholder="Promo (DISCOUNT10)" class="flex-1 px-3 py-2 border rounded-lg uppercase text-xs focus:outline-none focus:ring-1 focus:ring-green-600">
+        <button id="applyPromoBtn" class="bg-gray-800 hover:bg-gray-900 text-white px-3 py-2 rounded-lg text-xs font-semibold transition">Apply</button>
+      </div>
+      <p id="promoMessage" class="text-xs mb-3 hidden"></p>
+
+      <!-- Totals -->
+      <div class="space-y-1.5 text-xs text-gray-600">
+        <div class="flex justify-between">
+          <span>Subtotal:</span>
+          <span class="font-semibold text-gray-800">₹<span id="subtotalPrice">0.00</span></span>
+        </div>
+        <div id="discountRow" class="flex justify-between text-green-600 hidden">
+          <span>Discount (10%):</span>
+          <span>-₹<span id="discountAmount">0.00</span></span>
+        </div>
+        <div class="flex justify-between text-sm font-bold text-gray-900 border-t pt-2 mt-2">
+          <span>Total:</span>
+          <span class="text-green-700">₹<span id="totalPrice">0.00</span></span>
+        </div>
+      </div>
+
+      <button id="checkoutBtn" class="mt-4 w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white py-3 rounded-xl font-bold text-sm transition shadow">
+        Proceed to Checkout
+      </button>
+    </div>
+  </aside>
+
+  <!-- ORDER HISTORY SLIDE-OUT DRAWER -->
+  <aside id="historyDrawer" class="fixed top-0 right-0 w-full sm:w-96 h-full bg-white shadow-2xl z-50 translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="p-5 bg-green-800 text-white flex justify-between items-center shadow">
+      <h2 class="text-lg font-bold flex items-center gap-2">
+        <i class="fa-solid fa-clock-rotate-left"></i> Order History (Firebase)
+      </h2>
+      <button onclick="closeDrawers()" class="text-2xl hover:text-gray-200 font-bold">&times;</button>
+    </div>
+
+    <div id="historyItems" class="p-4 flex-1 overflow-y-auto space-y-4"></div>
+
+    <div class="p-4 border-t bg-gray-50 text-center">
+      <button onclick="clearHistory()" class="text-xs text-red-600 font-semibold hover:underline">Clear Order History</button>
+    </div>
+  </aside>
+
+  <!-- CHECKOUT MODAL -->
+  <div id="checkoutModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-2xl">
+      <button id="closeCheckoutModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+      
+      <h2 class="text-xl font-bold text-gray-800 mb-1">Complete Your Order</h2>
+      <p class="text-xs text-gray-500 mb-4">Amount Payable: <strong class="text-green-600 text-sm">₹<span id="checkoutFinalAmount">0.00</span></strong></p>
+
+      <form id="checkoutForm" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Customer Name</label>
+          <input type="text" id="customerName" required placeholder="Ishwari Sharma" class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Phone Number</label>
+          <input type="tel" id="customerPhone" required placeholder="+91 9876543210" class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Delivery Address</label>
+          <textarea id="deliveryAddress" required rows="2" placeholder="House No, Street, City, Pincode" class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none"></textarea>
+        </div>
+        <button type="submit" id="submitOrderBtn" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold text-sm shadow transition mt-2 flex items-center justify-center gap-2">
+          <span>Confirm & Place Order</span>
         </button>
       </form>
-
-      <div class="mt-4 text-center">
-        <button id="toggleAuthModeBtn" onclick="toggleAuthMode()" class="text-xs text-teal-600 font-medium hover:underline">
-          Don't have an account? Sign up
-        </button>
-      </div>
     </div>
   </div>
 
-  <!-- Firebase Integration & Web Application Logic -->
+  <!-- SUCCESS MODAL -->
+  <div id="successModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-2xl">
+      <div class="w-14 h-14 bg-green-500 text-white rounded-full flex items-center justify-center text-2xl mx-auto mb-3 shadow">✓</div>
+      <h2 class="text-xl font-bold text-gray-800">Order Placed & Saved!</h2>
+      <p class="text-xs text-gray-500 mt-1">Order synced directly to Firebase Database.</p>
+      <div class="bg-green-50 border border-green-100 text-green-700 py-2.5 px-4 rounded-lg mt-4 text-xs">
+        Order ID: <strong id="successOrderId">#1001</strong>
+      </div>
+      <button id="closeSuccessBtn" class="mt-5 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-xs font-bold transition">Done</button>
+    </div>
+  </div>
+
+  <!-- FIREBASE MODULAR SDK INCLUSION -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js"; 
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+    // Firebase Imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // Standard Restricted Config Block (Replace with your actual keys in production)
-   const firebaseConfig = {
-  apiKey: "AIzaSyAXr1YD_R6I5mSZWL8mDkIwdvTx7NSj2aE",
-  authDomain: "studentdata-f4449.firebaseapp.com",
-  databaseURL: "https://studentdata-f4449-default-rtdb.firebaseio.com",
-  projectId: "studentdata-f4449",
-  storageBucket: "studentdata-f4449.firebasestorage.app",
-  messagingSenderId: "455984666862",
-  appId: "1:455984666862:web:bac289cd3f55e8ffe47bff",
-  measurementId: "G-669NZVRLS4"
-};const app = initializeApp(firebaseConfig); 
-const database = getDatabase(app);
-const auth = getAuth(app);
-
-    let isSignUpMode = false;
-    let currentUser = null;
-
-    // View Navigation Switcher
-    window.switchView = function(viewName) {
-      const storeSection = document.getElementById('storeSection');
-      const adminSection = document.getElementById('adminSection');
-      const storeBtn = document.getElementById('storeViewBtn');
-      const adminBtn = document.getElementById('adminViewBtn');
-
-      if (viewName === 'store') {
-        storeSection.classList.remove('hidden');
-        adminSection.classList.add('hidden');
-        storeBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-teal-700 shadow-sm transition";
-        adminBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition";
-      } else {
-        adminSection.classList.remove('hidden');
-        storeSection.classList.add('hidden');
-        adminBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-teal-700 shadow-sm transition";
-        storeBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition";
-      }
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAY2wsgXTpoov2eMUzzGS7-BtxXuuRwILc",
+      authDomain: "digital-voting-system-2fac4.firebaseapp.com",
+      databaseURL: "https://digital-voting-system-2fac4-default-rtdb.firebaseio.com",
+      projectId: "digital-voting-system-2fac4",
+      storageBucket: "digital-voting-system-2fac4.firebasestorage.app",
+      messagingSenderId: "353024638864",
+      appId: "1:353024638864:web:38bc19dcbeccd2269fbd15",
+      measurementId: "G-SDJF86J930"
     };
 
-    // Monitor Auth State
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
-      const userStateContainer = document.getElementById('userState');
-      if (user) {
-        userStateContainer.innerHTML = `
-          <span class="text-xs font-medium text-slate-600 max-w-[120px] truncate" title="${user.email}">${user.email}</span>
-          <button onclick="handleLogout()" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold px-3 py-2 rounded-xl transition">Logout</button>
-        `;
-      } else {
-        userStateContainer.innerHTML = `
-          <button onclick="toggleAuthModal(true)" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition">Login / Register</button>
-        `;
-      }
-    });
+    // Initialize Firebase Services
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
+    const ordersRef = ref(db, 'orders');
 
-    // Handle Auth Submission
-    document.getElementById('authForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('authEmail').value;
-      const password = document.getElementById('authPassword').value;
-
-      try {
-        if (isSignUpMode) {
-          await createUserWithEmailAndPassword(auth, email, password);
-          alert("Account created successfully!");
-        } else {
-          await signInWithEmailAndPassword(auth, email, password);
-          alert("Logged in successfully!");
-        }
-        toggleAuthModal(false);
-      } catch (err) {
-        alert("Auth Error: " + err.message);
-      }
-    });
-
-    window.toggleAuthMode = function() {
-      isSignUpMode = !isSignUpMode;
-      document.getElementById('modalTitle').innerText = isSignUpMode ? "Create Account" : "Welcome Back";
-      document.getElementById('authSubmitBtn').innerText = isSignUpMode ? "Sign Up" : "Sign In";
-      document.getElementById('toggleAuthModeBtn').innerText = isSignUpMode ? "Already have an account? Sign in" : "Don't have an account? Sign up";
-    };
-
-    window.toggleAuthModal = function(show) {
-      document.getElementById('authModal').classList.toggle('hidden', !show);
-    };
-
-    window.handleLogout = function() {
-      signOut(auth);
-    };
-
-    // Product Inventory
-    const medicineDatabase = [
-      { id: 1, name: "Ibuprofen 200mg Softgels", brand: "Advil Health", category: "Pain Relief", price: "8.99", image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=500&q=80", badge: "OTC Medicine" },
-      { id: 2, name: "Paracetamol 500mg Tablets", brand: "Tylenol Care", category: "Pain Relief", price: "6.49", image: "https://images.unsplash.com/photo-1550572017-edf7b63f6402?auto=format&fit=crop&w=500&q=80", badge: "Fever Relief" },
-      { id: 3, name: "Vitamin C 1000mg + Zinc", brand: "Emergen-C", category: "Vitamins", price: "14.20", image: "https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&w=500&q=80", badge: "Immune Boost" },
-      { id: 4, name: "Sterile Fabric Bandages (100 Pack)", brand: "Band-Aid", category: "First Aid", price: "7.25", image: "https://images.unsplash.com/photo-1603398938378-e54eab446dde?auto=format&fit=crop&w=500&q=80", badge: "First Aid" }
+    // Products Data
+    const products = [
+      { id: 1, name: "Paracetamol 650mg (50 Tabs)", price: 120, cat: "Prescription", rating: 4.9, icon: "fa-pills", color: "text-red-500", desc: "Fast pain relief and fever management." },
+      { id: 2, name: "Multivitamin Complex (60 Caps)", price: 499, cat: "Daily Wellness", rating: 4.8, icon: "fa-capsules", color: "text-green-500", desc: "Essential daily vitamins & minerals." },
+      { id: 3, name: "Digital Thermometer", price: 350, cat: "Medical Devices", rating: 4.6, icon: "fa-temperature-three-quarters", color: "text-blue-500", desc: "Quick & accurate temperature readings." },
+      { id: 4, name: "Omron Blood Pressure Monitor", price: 2199, cat: "Medical Devices", rating: 4.9, icon: "fa-heart-pulse", color: "text-rose-600", desc: "Fully automatic digital BP monitor." },
+      { id: 5, name: "Antiseptic Liquid 500ml", price: 180, cat: "First Aid", rating: 4.7, icon: "fa-pump-soap", color: "text-amber-500", desc: "First aid wound cleansing and hygiene." },
+      { id: 6, name: "Whey Protein Isolate 1kg", price: 2499, cat: "Daily Wellness", rating: 4.8, icon: "fa-dumbbell", color: "text-purple-600", desc: "Ultra-pure muscle recovery protein powder." },
+      { id: 7, name: "Vitamin C + Zinc Chewables", price: 250, cat: "Daily Wellness", rating: 4.7, icon: "fa-tablets", color: "text-orange-500", desc: "Immunity booster for daily health." },
+      { id: 8, name: "First Aid Kit Emergency Box", price: 650, cat: "First Aid", rating: 4.9, icon: "fa-kit-medical", color: "text-emerald-600", desc: "Complete 45-piece home first aid set." },
+      { id: 9, name: "Cough Syrup Relief 100ml", price: 110, cat: "Prescription", rating: 4.5, icon: "fa-prescription-bottle-medical", color: "text-teal-600", desc: "Soothes throat irritation & cough." },
+      { id: 10, name: "Blood Glucose Monitor + Strips", price: 1299, cat: "Medical Devices", rating: 4.8, icon: "fa-droplet", color: "text-red-600", desc: "Instant blood sugar testing kit." },
+      { id: 11, name: "Organic Herbal Green Tea", price: 299, cat: "Daily Wellness", rating: 4.5, icon: "fa-mug-hot", color: "text-green-600", desc: "Rich in antioxidants for detoxification." },
+      { id: 12, name: "Pain Relief Spray 100g", price: 210, cat: "First Aid", rating: 4.6, icon: "fa-spray-can", color: "text-blue-600", desc: "Instant relief from muscle & joint pain." }
     ];
 
-    window.renderProducts = function(items) {
-      const grid = document.getElementById('productGrid');
-      grid.innerHTML = '';
-      items.forEach(product => {
-        grid.innerHTML += `
-          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between">
-            <div>
-              <div class="h-48 bg-slate-50 flex items-center justify-center overflow-hidden relative">
-                <img src="${product.image}" alt="${product.name}" class="object-cover h-full w-full"/>
-                <span class="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full font-semibold bg-teal-100 text-teal-800">${product.badge}</span>
-              </div>
-              <div class="p-5">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">${product.brand}</span>
-                <h3 class="font-bold text-slate-800 text-lg leading-snug mt-1">${product.name}</h3>
-              </div>
-            </div>
-            <div class="p-5 pt-0 flex justify-between items-center border-t border-slate-100 mt-4">
-              <div>
-                <span class="text-xs text-slate-400 block">Price</span>
-                <span class="text-xl font-bold text-teal-600">$${product.price}</span>
-              </div>
-              <button onclick="placeOrder('${product.name}', '${product.price}')" class="bg-slate-900 hover:bg-teal-600 text-white text-sm font-medium px-4 py-2 rounded-xl transition">
-                Order Now
-              </button>
-            </div>
-          </div>
-        `;
-      });
-    };
+    // State
+    let cart = [];
+    let orderHistory = [];
+    let activeCategory = 'All';
+    let isDiscountApplied = false;
 
-    window.filterCategory = function(category) {
-      renderProducts(category === 'all' ? medicineDatabase : medicineDatabase.filter(item => item.category === category));
-    };
+    // Elements
+    const productGrid = document.getElementById('productGrid');
+    const searchInput = document.getElementById('searchInput');
+    const cartBadge = document.getElementById('cartBadge');
+    const historyBadge = document.getElementById('historyBadge');
+    const cartItems = document.getElementById('cartItems');
+    const historyItems = document.getElementById('historyItems');
+    const cartDrawer = document.getElementById('cartDrawer');
+    const historyDrawer = document.getElementById('historyDrawer');
+    const overlay = document.getElementById('overlay');
 
-    window.placeOrder = function(itemName, price) {
-      const ordersRef = ref(database, 'orders');
-      push(ordersRef, {
-        item: itemName,
-        price: price,
-        customerEmail: currentUser ? currentUser.email : "Guest Order",
-        timestamp: new Date().toLocaleString()
-      }).then(() => alert(`Order placed for ${itemName}!`))
-        .catch((err) => console.error("Database Write Error:", err));
-    };
+    const subtotalPriceEl = document.getElementById('subtotalPrice');
+    const discountRow = document.getElementById('discountRow');
+    const discountAmountEl = document.getElementById('discountAmount');
+    const totalPriceEl = document.getElementById('totalPrice');
+    const promoInput = document.getElementById('promoInput');
+    const promoMessage = document.getElementById('promoMessage');
 
-    // Firebase Realtime Synchronization (Updates Store Counter + Admin Panel synchronously)
-    onValue(ref(database, 'orders'), (snapshot) => {
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const checkoutModal = document.getElementById('checkoutModal');
+    const checkoutFinalAmount = document.getElementById('checkoutFinalAmount');
+    const checkoutForm = document.getElementById('checkoutForm');
+    const submitOrderBtn = document.getElementById('submitOrderBtn');
+    const successModal = document.getElementById('successModal');
+    const successOrderId = document.getElementById('successOrderId');
+
+    // Live Sync with Firebase Realtime Database
+    onValue(ordersRef, (snapshot) => {
       const data = snapshot.val();
-      const tableBody = document.getElementById('adminOrderTable');
-      tableBody.innerHTML = '';
+      orderHistory = [];
+      if (data) {
+        Object.keys(data).forEach(key => {
+          orderHistory.push({ firebaseKey: key, ...data[key] });
+        });
+        orderHistory.reverse();
+      }
+      updateHistoryUI();
+    });
 
-      if (!data) {
-        document.getElementById('storeOrderCount').innerText = '0';
-        document.getElementById('adminTotalOrders').innerText = '0';
-        document.getElementById('adminTotalRevenue').innerText = '$0.00';
-        tableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-slate-400">No active customer orders found in Firebase.</td></tr>`;
+    // Render Products
+    window.renderProducts = function() {
+      const searchVal = searchInput.value.toLowerCase().trim();
+      const filtered = products.filter(p => {
+        const matchesCat = activeCategory === 'All' || p.cat === activeCategory;
+        const matchesSearch = p.name.toLowerCase().includes(searchVal) || p.desc.toLowerCase().includes(searchVal);
+        return matchesCat && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        productGrid.innerHTML = `
+          <div class="col-span-full text-center py-12 text-gray-400">
+            <i class="fa-solid fa-magnifying-glass text-4xl mb-2"></i>
+            <p>No medicines or products found matching your search.</p>
+          </div>`;
         return;
       }
 
-      let revenueSum = 0;
-      const orderKeys = Object.keys(data);
+      productGrid.innerHTML = filtered.map(p => `
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 flex flex-col justify-between overflow-hidden">
+          <div class="p-5 flex flex-col items-center text-center bg-gray-50/50 border-b border-gray-50">
+            <div class="w-16 h-16 rounded-full bg-white shadow-inner flex items-center justify-center mb-3">
+              <i class="fa-solid ${p.icon} text-3xl ${p.color}"></i>
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-green-700 bg-green-50 px-2.5 py-0.5 rounded-full mb-1">${p.cat}</span>
+            <h3 class="font-bold text-gray-800 text-sm line-clamp-1">${p.name}</h3>
+            <p class="text-xs text-gray-400 mt-1 line-clamp-2">${p.desc}</p>
+          </div>
 
-      orderKeys.forEach(key => {
-        const order = data[key];
-        revenueSum += parseFloat(order.price || 0);
-
-        tableBody.innerHTML += `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="px-6 py-4 font-mono text-xs text-slate-400">${key.substring(0, 8)}...</td>
-            <td class="px-6 py-4 font-bold text-slate-800">${order.item}</td>
-            <td class="px-6 py-4 text-teal-600 font-semibold">$${order.price}</td>
-            <td class="px-6 py-4 text-slate-600">${order.customerEmail}</td>
-            <td class="px-6 py-4 text-xs text-slate-400">${order.timestamp}</td>
-            <td class="px-6 py-4 text-right">
-              <button onclick="fulfillOrder('${key}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs px-3 py-1.5 rounded-lg font-medium transition">
-                Fulfill
-              </button>
-            </td>
-          </tr>
-        `;
-      });
-
-      document.getElementById('storeOrderCount').innerText = orderKeys.length;
-      document.getElementById('adminTotalOrders').innerText = orderKeys.length;
-      document.getElementById('adminTotalRevenue').innerText = `$${revenueSum.toFixed(2)}`;
-    });
-
-    window.fulfillOrder = function(orderId) {
-      remove(ref(database, `orders/${orderId}`));
+          <div class="p-4 bg-white">
+            <div class="flex justify-between items-center mb-3">
+              <span class="text-lg font-extrabold text-green-700">₹${p.price}</span>
+              <span class="text-xs font-semibold text-amber-500">⭐ ${p.rating}</span>
+            </div>
+            <button onclick="addToCart(${p.id})" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-cart-plus"></i> Add to Cart
+            </button>
+          </div>
+        </div>
+      `).join('');
     };
 
-    window.clearAllOrders = function() {
-      if (confirm("Are you sure you want to delete all active orders?")) {
-        remove(ref(database, 'orders'));
+    window.filterCategory = function(cat) {
+      activeCategory = cat;
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('bg-green-700', 'text-white');
+        btn.classList.add('bg-white', 'text-gray-700');
+        if (btn.innerText === cat) {
+          btn.classList.remove('bg-white', 'text-gray-700');
+          btn.classList.add('bg-green-700', 'text-white');
+        }
+      });
+      renderProducts();
+    };
+
+    window.addToCart = function(id) {
+      const p = products.find(prod => prod.id === id);
+      const existing = cart.find(item => item.id === id);
+      if (existing) existing.qty += 1;
+      else cart.push({ ...p, qty: 1 });
+      updateCartUI();
+      openCartDrawer();
+    };
+
+    window.changeQty = function(index, delta) {
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) cart.splice(index, 1);
+      updateCartUI();
+    };
+
+    window.removeFromCart = function(index) {
+      cart.splice(index, 1);
+      updateCartUI();
+    };
+
+    function updateCartUI() {
+      const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
+      cartBadge.textContent = totalCount;
+
+      if (cart.length === 0) {
+        cartItems.innerHTML = `
+          <div class="text-center py-12 text-gray-400">
+            <i class="fa-solid fa-basket-shopping text-4xl mb-2"></i>
+            <p class="text-xs">Your shopping cart is empty.</p>
+          </div>`;
+        checkoutBtn.disabled = true;
+      } else {
+        cartItems.innerHTML = cart.map((item, index) => `
+          <div class="py-3 flex items-center justify-between gap-2">
+            <div class="flex-1">
+              <h4 class="font-bold text-gray-800 text-xs">${item.name}</h4>
+              <p class="text-[11px] text-gray-400">₹${item.price} × ${item.qty}</p>
+              <p class="text-xs font-bold text-green-700">₹${item.price * item.qty}</p>
+            </div>
+            <div class="flex items-center gap-1.5 bg-gray-100 rounded-md p-1">
+              <button onclick="changeQty(${index}, -1)" class="w-5 h-5 bg-white rounded text-xs font-bold shadow">-</button>
+              <span class="text-xs font-bold px-1">${item.qty}</span>
+              <button onclick="changeQty(${index}, 1)" class="w-5 h-5 bg-white rounded text-xs font-bold shadow">+</button>
+            </div>
+            <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 text-xs px-1">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `).join('');
+        checkoutBtn.disabled = false;
+      }
+
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      let discount = isDiscountApplied ? subtotal * 0.10 : 0;
+      if (isDiscountApplied) discountRow.classList.remove('hidden');
+      else discountRow.classList.add('hidden');
+
+      const total = subtotal - discount;
+      subtotalPriceEl.textContent = subtotal.toFixed(2);
+      discountAmountEl.textContent = discount.toFixed(2);
+      totalPriceEl.textContent = total.toFixed(2);
+      checkoutFinalAmount.textContent = total.toFixed(2);
+    }
+
+    // Promo Code
+    document.getElementById('applyPromoBtn').addEventListener('click', () => {
+      const code = promoInput.value.trim().toUpperCase();
+      if (code === 'DISCOUNT10') {
+        isDiscountApplied = true;
+        promoMessage.textContent = "10% Discount Applied!";
+        promoMessage.className = "text-xs mb-2 text-green-600 font-semibold";
+        promoMessage.classList.remove('hidden');
+        updateCartUI();
+      } else {
+        promoMessage.textContent = "Invalid Code. Use DISCOUNT10";
+        promoMessage.className = "text-xs mb-2 text-red-500 font-semibold";
+        promoMessage.classList.remove('hidden');
+      }
+    });
+
+    // Update History UI
+    function updateHistoryUI() {
+      historyBadge.textContent = orderHistory.length;
+      if (orderHistory.length === 0) {
+        historyItems.innerHTML = `
+          <div class="text-center py-12 text-gray-400">
+            <i class="fa-solid fa-box-open text-4xl mb-2"></i>
+            <p class="text-xs">No orders in Firebase Database.</p>
+          </div>`;
+      } else {
+        historyItems.innerHTML = orderHistory.map(ord => `
+          <div class="border rounded-xl p-3 bg-gray-50 text-xs space-y-2">
+            <div class="flex justify-between font-bold text-gray-800 border-b pb-1.5">
+              <span>Order #${ord.id}</span>
+              <span class="text-green-700">₹${ord.total}</span>
+            </div>
+            <div class="text-[11px] text-gray-500">
+              <p><strong>Customer:</strong> ${ord.name}</p>
+              <p><strong>Phone:</strong> ${ord.phone}</p>
+              <p><strong>Date:</strong> ${ord.date}</p>
+            </div>
+            <div class="bg-white p-2 rounded border space-y-1">
+              ${ord.items ? ord.items.map(i => `<div class="flex justify-between"><span>${i.name} (x${i.qty})</span><span>₹${i.price * i.qty}</span></div>`).join('') : ''}
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Clear History from Firebase
+    window.clearHistory = function() {
+      if (confirm("Are you sure you want to clear order history from Firebase?")) {
+        remove(ordersRef);
       }
     };
 
-    // Initial Catalog Load
-    renderProducts(medicineDatabase);
+    // Save Order to Firebase Database
+    checkoutForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      submitOrderBtn.disabled = true;
+      submitOrderBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Saving to Database...`;
+
+      const orderData = {
+        id: Math.floor(100000 + Math.random() * 900000),
+        name: document.getElementById('customerName').value,
+        phone: document.getElementById('customerPhone').value,
+        address: document.getElementById('deliveryAddress').value,
+        items: cart,
+        total: totalPriceEl.textContent,
+        date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      };
+
+      try {
+        await push(ordersRef, orderData);
+
+        cart = [];
+        isDiscountApplied = false;
+        promoInput.value = '';
+        promoMessage.classList.add('hidden');
+        checkoutForm.reset();
+        updateCartUI();
+
+        checkoutModal.classList.add('hidden');
+        successOrderId.textContent = `#${orderData.id}`;
+        successModal.classList.remove('hidden');
+      } catch (err) {
+        alert("Failed to save order to Firebase: " + err.message);
+      } finally {
+        submitOrderBtn.disabled = false;
+        submitOrderBtn.innerHTML = `Confirm & Place Order`;
+      }
+    });
+
+    // Drawer Controls
+    window.openCartDrawer = function() { closeDrawers(); cartDrawer.classList.remove('translate-x-full'); overlay.classList.remove('hidden'); };
+    window.openHistoryDrawer = function() { closeDrawers(); historyDrawer.classList.remove('translate-x-full'); overlay.classList.remove('hidden'); };
+    window.closeDrawers = function() { cartDrawer.classList.add('translate-x-full'); historyDrawer.classList.add('translate-x-full'); overlay.classList.add('hidden'); };
+
+    document.getElementById('cartBtn').onclick = openCartDrawer;
+    document.getElementById('historyBtn').onclick = openHistoryDrawer;
+    overlay.onclick = closeDrawers;
+    searchInput.oninput = renderProducts;
+
+    checkoutBtn.onclick = () => { closeDrawers(); checkoutModal.classList.remove('hidden'); };
+    document.getElementById('closeCheckoutModal').onclick = () => checkoutModal.classList.add('hidden');
+    document.getElementById('closeSuccessBtn').onclick = () => successModal.classList.add('hidden');
+
+    // Init
+    renderProducts();
+    updateCartUI();
   </script>
-  
-<script>
-(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="TcaBlUAA3MJIQ_1cVFCyQ";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
-</script>
 </body>
 </html>
